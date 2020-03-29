@@ -1,0 +1,2 @@
+Added `times` data member in ~sunpy.net.dataretriever.client.GenericClient` so as to avoid its implementation of `_get_time_for_url()` separately in every client.
+
