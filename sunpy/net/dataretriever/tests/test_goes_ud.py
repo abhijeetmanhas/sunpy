@@ -143,5 +143,5 @@ def test_time_for_url(LCClient, time):
 
     tr = TimeRange(time, almost_day)
     url = LCClient._get_url_for_timerange(tr)
-    times = LCClient._get_time_for_url(url)
+    times = LCClient.times
     assert all([tr == t2 for t2 in times])

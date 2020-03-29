@@ -162,12 +162,11 @@ class RHESSIClient(GenericClient):
         timerange : `~sunpy.time.TimeRange`
             Date range should be specified using a TimeRange.
         """
-        return self.get_observing_summary_filename(timerange)
-
-    def _get_time_for_url(self, urls):
+        urls = self.get_observing_summary_filename(timerange)
         ts = [datetime.strptime(url.split("hsi_obssumm_")[1].split("_")[0],
                                 "%Y%m%d") for url in urls]
-        return [TimeRange(t, (1*u.day-1*u.ms)) for t in ts]
+        self.times = [TimeRange(t, (1*u.day-1*u.ms)) for t in ts]
+        return urls
 
     def _makeimap(self):
         """

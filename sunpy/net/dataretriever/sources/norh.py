@@ -94,17 +94,15 @@ class NoRHClient(GenericClient):
         #       tca160504_224657 on ftp://solar-pub.nao.ac.jp/pub/nsro/norh/data/tcx/2016/05/
         #       as it doesn't follow pattern.
 
-        return norh.filelist(timerange)
-
-    def _get_time_for_url(self, urls):
+        urls = norh.filelist(timerange)
         freq = urls[0].split('/')[-1][0:3]  # extract the frequency label
-        crawler = Scraper(BASEURL, freq=freq)
         times = list()
         for url in urls:
-            t0 = crawler._extractDateURL(url)
+            t0 = norh._extractDateURL(url)
             # hard coded full day as that's the normal.
             times.append(TimeRange(t0, t0 + TimeDelta(1*u.day)))
-        return times
+        self.times = times
+        return urls
 
     def _makeimap(self):
         """

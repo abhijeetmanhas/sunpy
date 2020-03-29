@@ -150,6 +150,7 @@ class GenericClient(BaseClient):
 
     def __init__(self):
         self.map_ = {}
+        self.times = None
 
     def _makeargs(self, *args):
         """
@@ -270,15 +271,6 @@ class GenericClient(BaseClient):
 
         return paths
 
-    def _get_time_for_url(self, urls):
-        """
-        This method allows clients to customise the timerange displayed for
-        each URL.
-
-        It should return a sunpy.time.TimeRange object per URL.
-        """
-        return NotImplemented
-
     def search(self, *args, **kwargs):
         """
         Query this client for a list of results.
@@ -295,8 +287,8 @@ class GenericClient(BaseClient):
         urls = self._get_url_for_timerange(
             self.map_.get('TimeRange'), **kwergs)
         if urls:
-            times = self._get_time_for_url(urls)
-            if times and times is not NotImplemented:
+            times = self.times
+            if times is not None:
                 return QueryResponse.create(self.map_, urls, times, client=self)
         return QueryResponse.create(self.map_, urls, client=self)
 

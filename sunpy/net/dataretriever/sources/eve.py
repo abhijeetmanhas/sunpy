@@ -65,16 +65,13 @@ class EVEClient(GenericClient):
         if timerange.start.strftime('%M-%S') != '00-00':
             timerange = TimeRange(timerange.start.strftime('%Y-%m-%d'), timerange.end)
         eve = Scraper(BASEURL)
-        return eve.filelist(timerange)
-
-    def _get_time_for_url(self, urls):
-        eve = Scraper(BASEURL)
+        urls = eve.filelist(timerange)
         times = list()
         for url in urls:
             t0 = eve._extractDateURL(url)
             # hard coded full day as that's the normal.
             times.append(TimeRange(t0, t0 + TimeDelta(1*u.day)))
-        return times
+        return urls
 
     def _makeimap(self):
         """
