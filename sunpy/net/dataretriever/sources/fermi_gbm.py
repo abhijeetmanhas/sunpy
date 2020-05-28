@@ -85,13 +85,12 @@ class GBMClient(GenericClient):
         return urls
 
     def _get_metadata_for_url(self, urls):
-        meta = list()
         pattern = ('https://heasarc.gsfc.nasa.gov/FTP/fermi/data/gbm/daily/{year:4d}/'
-                   '{month:2d}/{date:2d}/current/glg_{Resolution:5w}_{Detector:2w}_{}_v00.pha')
+                   '{month:2d}/{day:2d}/current/glg_{Resolution:5w}_{Detector:2w}_{}_v00.pha')
         meta = list()
         for url in urls:
             udict = parse(pattern, url).named
-            urltime = parse_time(udict['year']+'/'+udict['month']+'/'+udict['day'])
+            urltime = parse_time(str(udict['year'])+'/'+str(udict['month'])+'/'+str(udict['day']))
             metadict = {}
             metadict['StartTime'] = urltime
             metadict['Resolution'] = udict['Resolution']

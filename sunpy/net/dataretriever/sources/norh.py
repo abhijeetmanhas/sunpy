@@ -99,15 +99,15 @@ class NoRHClient(GenericClient):
     def _get_metadata_for_url(self, urls):
         meta = list()
         pattern = ('ftp://solar-pub.nao.ac.jp/pub/nsro/norh/data/tcx/'
-                   '{}/{}/{freq:3w}{year:4d}{month:2d}{date:2d}')
+                   '{year:4d}/{month:2d}/{freq}{:4d}{day:2d}')
         meta = list()
         for url in urls:
             udict = parse(pattern, url).named
-            urltime = parse_time(udict['year']+'/'+udict['month']+'/'+udict['day'])
+            urltime = parse_time(str(udict['year'])+'/'+str(udict['month'])+'/'+str(udict['day']))
             metadict = {}
             metadict['StartTime'] = urltime
             freq = udict['freq']
-            if freq == 'tca':
+            if freq == 'tcz':
                 metadict['Wavelength'] = 34 * u.GHz
             else:
                 metadict['Wavelength'] = 17 * u.GHz

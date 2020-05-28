@@ -314,7 +314,7 @@ class GenericClient(BaseClient):
             self.map_.get('TimeRange'), **kwergs)
         if urls:
             times = self._get_time_for_url(urls)
-            urlmeta = self._get_time_for_url(urls)
+            urlmeta = self._get_metadata_for_url(urls)
             if times and times is not NotImplemented:
                 return QueryResponse.create(self.map_, urls, times, client=self)
             if urlmeta and urlmeta is not NotImplemented:

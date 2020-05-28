@@ -73,7 +73,7 @@ class EVEClient(GenericClient):
         meta = list()
         for url in urls:
             udict = parse(pattern, url).named
-            urltime = parse_time(udict['year']+'/'+udict['month']+'/'+udict['day'])
+            urltime = parse_time(str(udict['year'])+'/'+str(udict['month'])+'/'+str(udict['day']))
             metadict = {}
             metadict['StartTime'] = urltime
             metadict['Level'] = udict['Level']

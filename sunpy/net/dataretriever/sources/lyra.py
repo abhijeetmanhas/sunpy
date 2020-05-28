@@ -59,11 +59,11 @@ class LYRAClient(GenericClient):
 
     def _get_metadata_for_url(self, urls):
         pattern = ('http://proba2.oma.be/lyra/data/bsd/'
-                   '{year:4d}/{month:2d}/{date:2d}/lyra_{}-000000_lev{level:d}_std.fits')
+                   '{year:4d}/{month:2d}/{day:2d}/lyra_{}-000000_lev{Level:d}_std.fits')
         meta = list()
         for url in urls:
             udict = parse(pattern, url).named
-            urltime = parse_time(udict['year']+'/'+udict['month']+'/'+udict['day'])
+            urltime = parse_time(str(udict['year'])+'/'+str(udict['month'])+'/'+str(udict['day']))
             metadict = {}
             metadict['StartTime'] = urltime
             metadict['Level'] = udict['Level']

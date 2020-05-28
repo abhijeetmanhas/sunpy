@@ -94,11 +94,11 @@ class XRSClient(GenericClient):
     def _get_metadata_for_url(self, urls):
         meta = list()
         pattern = ('https://umbra.nascom.nasa.gov/goes/fits/{year:4d}/'
-                   'go{satellitenumber:02d}{}{month:2d}{date:2d}.fits')
+                   'go{satellitenumber:02d}{}{month:2d}{day:2d}.fits')
         meta = list()
         for url in urls:
             udict = parse(pattern, url).named
-            urltime = parse_time(udict['year']+'/'+udict['month']+'/'+udict['day'])
+            urltime = parse_time(str(udict['year'])+'/'+str(udict['month'])+'/'+str(udict['day']))
             metadict = {}
             metadict['StartTime'] = urltime
             metadict['SatelliteNumber'] = udict['satellitenumber']
