@@ -277,7 +277,7 @@ class SUVIClient(GenericClient):
             if this_url.count('/goes17/') > 0:
                 metadict['SatelliteNumber'] = 17
             wave = int(os.path.basename(this_url).split('-')[2][2:5]) * u.Angstrom
-            metadict['SartTime'] = start_time
+            metadict['StartTime'] = start_time
             metadict['EndTime'] = end_time
             metadict['Wavelength'] = wave
             meta.append(metadict)

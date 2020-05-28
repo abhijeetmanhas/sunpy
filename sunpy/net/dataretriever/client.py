@@ -38,11 +38,10 @@ class QueryResponseBlock:
         self.physobs = map0.get('physobs', "Data not Available")
         self.instrument = map0.get('instrument', "Data not Available")
         self.url = url
-        if meta is None:
-            self.time = TimeRange(map0.get('Time_start'),
-                                  map0.get('Time_end')) if time is None else time
-            self.wave = map0.get('wavelength', np.NaN)
-        else:
+        self.time = TimeRange(map0.get('Time_start'),
+                              map0.get('Time_end')) if time is None else time
+        self.wave = map0.get('wavelength', np.NaN)
+        if meta is not None:
             meta['Source'] = self.source
             meta['Provider'] = self.provider
             meta['Physobs'] = self.physobs
