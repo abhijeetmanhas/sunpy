@@ -1,4 +1,7 @@
+from parse import parse
+
 from sunpy.net.dataretriever import GenericClient
+from sunpy.time import parse_time
 from sunpy.util.scraper import Scraper
 
 __all__ = ['GBMClient']
@@ -80,6 +83,21 @@ class GBMClient(GenericClient):
         urls = gbm_files.filelist(timerange)
 
         return urls
+
+    def _get_metadata_for_url(self, urls):
+        meta = list()
+        pattern = ('https://heasarc.gsfc.nasa.gov/FTP/fermi/data/gbm/daily/{year:4d}/'
+                   '{month:2d}/{date:2d}/current/glg_{Resolution:5w}_{Detector:2w}_{}_v00.pha')
+        meta = list()
+        for url in urls:
+            udict = parse(pattern, url).named
+            urltime = parse_time(udict['year']+'/'+udict['month']+'/'+udict['day'])
+            metadict = {}
+            metadict['StartTime'] = urltime
+            metadict['Resolution'] = udict['Resolution']
+            metadict['Detector'] = udict['Detector']
+            meta.append(metadict)
+        return meta
 
     def _makeimap(self):
         """

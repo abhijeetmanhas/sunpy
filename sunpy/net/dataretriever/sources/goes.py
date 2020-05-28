@@ -3,6 +3,9 @@
 # Google Summer of Code 2014
 
 import os
+
+from parse import parse
+
 from datetime import datetime
 from itertools import compress
 from urllib.parse import urlsplit
@@ -88,24 +91,19 @@ class XRSClient(GenericClient):
                 )
             )
 
-    def _get_time_for_url(self, urls):
-        times = []
-        for uri in urls:
-            uripath = urlsplit(uri).path
-
-            # Extract the yymmdd or yyyymmdd timestamp
-            datestamp = os.path.splitext(os.path.split(uripath)[1])[0][4:]
-
-            # 1999-01-15 as an integer.
-            if int(datestamp) <= 990115:
-                start = Time.strptime(datestamp, "%y%m%d")
-            else:
-                start = Time.strptime(datestamp, "%Y%m%d")
-
-            almost_day = TimeDelta(1 * u.day - 1 * u.millisecond)
-            times.append(TimeRange(start, start + almost_day))
-
-        return times
+    def _get_metadata_for_url(self, urls):
+        meta = list()
+        pattern = ('https://umbra.nascom.nasa.gov/goes/fits/{year:4d}/'
+                   'go{satellitenumber:02d}{}{month:2d}{date:2d}.fits')
+        meta = list()
+        for url in urls:
+            udict = parse(pattern, url).named
+            urltime = parse_time(udict['year']+'/'+udict['month']+'/'+udict['day'])
+            metadict = {}
+            metadict['StartTime'] = urltime
+            metadict['SatelliteNumber'] = udict['satellitenumber']
+            meta.append(metadict)
+        return meta
 
     def _get_url_for_timerange(self, timerange, **kwargs):
         """
@@ -260,21 +258,30 @@ class SUVIClient(GenericClient):
             # if no satellites were found then raise an exception
             raise ValueError(f"No operational SUVI instrument on {date.strftime(TIME_FORMAT)}")
 
-    def _get_time_for_url(self, urls):
-        these_timeranges = []
-
+    def _get_metadata_for_url(self, urls):
+        meta = list()
         for this_url in urls:
+            metadict = {}
             if this_url.count('/l2/') > 0:  # this is a level 2 data file
                 start_time = parse_time(os.path.basename(this_url).split('_s')[2].split('Z')[0])
                 end_time = parse_time(os.path.basename(this_url).split('_e')[1].split('Z')[0])
-                these_timeranges.append(TimeRange(start_time, end_time))
+                metadict['Level'] = '2'
             if this_url.count('/l1b/') > 0:  # this is a level 1b data file
                 start_time = datetime.strptime(os.path.basename(this_url).split('_s')[
                                                1].split('_e')[0][:-1], '%Y%j%H%M%S')
                 end_time = datetime.strptime(os.path.basename(this_url).split('_e')[
                                              1].split('_c')[0][:-1], '%Y%j%H%M%S')
-                these_timeranges.append(TimeRange(start_time, end_time))
-        return these_timeranges
+                metadict['Level'] = '1b'
+            if this_url.count('/goes16/') > 0:
+                metadict['SatelliteNumber'] = 16
+            if this_url.count('/goes17/') > 0:
+                metadict['SatelliteNumber'] = 17
+            wave = int(os.path.basename(this_url).split('-')[2][2:5]) * u.Angstrom
+            metadict['SartTime'] = start_time
+            metadict['EndTime'] = end_time
+            metadict['Wavelength'] = wave
+            meta.append(metadict)
+        return meta
 
     def _get_url_for_timerange(self, timerange, **kwargs):
         """

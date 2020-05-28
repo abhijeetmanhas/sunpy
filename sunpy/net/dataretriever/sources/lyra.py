@@ -2,7 +2,10 @@
 # This module was developed under funding provided by
 # Google Summer of Code 2014
 
+from parse import parse
+
 from sunpy.net.dataretriever.client import GenericClient
+from sunpy.time import parse_time
 from sunpy.util.scraper import Scraper
 
 __all__ = ['LYRAClient']
@@ -53,6 +56,19 @@ class LYRAClient(GenericClient):
         urls = lyra_files.filelist(timerange)
 
         return urls
+
+    def _get_metadata_for_url(self, urls):
+        pattern = ('http://proba2.oma.be/lyra/data/bsd/'
+                   '{year:4d}/{month:2d}/{date:2d}/lyra_{}-000000_lev{level:d}_std.fits')
+        meta = list()
+        for url in urls:
+            udict = parse(pattern, url).named
+            urltime = parse_time(udict['year']+'/'+udict['month']+'/'+udict['day'])
+            metadict = {}
+            metadict['StartTime'] = urltime
+            metadict['Level'] = udict['Level']
+            meta.append(metadict)
+        return meta
 
     def _makeimap(self):
         """

@@ -5,8 +5,10 @@
 import astropy.units as u
 from astropy.time import TimeDelta
 
+from parse import parse
+
 from sunpy.net.dataretriever import GenericClient
-from sunpy.time import TimeRange
+from sunpy.time import parse_time, TimeRange
 from sunpy.util.scraper import Scraper
 
 __all__ = ['NoRHClient']
@@ -94,15 +96,23 @@ class NoRHClient(GenericClient):
 
         return norh.filelist(timerange)
 
-    def _get_time_for_url(self, urls):
-        freq = urls[0].split('/')[-1][0:3]  # extract the frequency label
-        crawler = Scraper(BASEURL, freq=freq)
-        times = list()
+    def _get_metadata_for_url(self, urls):
+        meta = list()
+        pattern = ('ftp://solar-pub.nao.ac.jp/pub/nsro/norh/data/tcx/'
+                   '{}/{}/{freq:3w}{year:4d}{month:2d}{date:2d}')
+        meta = list()
         for url in urls:
-            t0 = crawler._extractDateURL(url)
-            # hard coded full day as that's the normal.
-            times.append(TimeRange(t0, t0 + TimeDelta(1*u.day)))
-        return times
+            udict = parse(pattern, url).named
+            urltime = parse_time(udict['year']+'/'+udict['month']+'/'+udict['day'])
+            metadict = {}
+            metadict['StartTime'] = urltime
+            freq = udict['freq']
+            if freq == 'tca':
+                metadict['Wavelength'] = 34 * u.GHz
+            else:
+                metadict['Wavelength'] = 17 * u.GHz
+            meta.append(metadict)
+        return meta
 
     def _makeimap(self):
         """

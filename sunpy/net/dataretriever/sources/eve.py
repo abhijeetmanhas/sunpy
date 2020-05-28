@@ -5,8 +5,10 @@
 import astropy.units as u
 from astropy.time import TimeDelta
 
+from parse import parse
+
 from sunpy.net.dataretriever import GenericClient
-from sunpy.time import TimeRange
+from sunpy.time import parse_time, TimeRange
 from sunpy.util.scraper import Scraper
 
 __all__ = ['EVEClient']
@@ -65,14 +67,18 @@ class EVEClient(GenericClient):
         eve = Scraper(BASEURL)
         return eve.filelist(timerange)
 
-    def _get_time_for_url(self, urls):
-        eve = Scraper(BASEURL)
-        times = list()
+    def _get_metadata_for_url(self, urls):
+        pattern = ('http://lasp.colorado.edu/eve/data_access/evewebdata/quicklook/L0CS/SpWx/'
+                   '{}/{year:4d}{month:2d}{day:2d}_EVE_L{Level:3w}_DIODES_1m.txt')
+        meta = list()
         for url in urls:
-            t0 = eve._extractDateURL(url)
-            # hard coded full day as that's the normal.
-            times.append(TimeRange(t0, t0 + TimeDelta(1*u.day)))
-        return times
+            udict = parse(pattern, url).named
+            urltime = parse_time(udict['year']+'/'+udict['month']+'/'+udict['day'])
+            metadict = {}
+            metadict['StartTime'] = urltime
+            metadict['Level'] = udict['Level']
+            meta.append(metadict)
+        return meta
 
     def _makeimap(self):
         """

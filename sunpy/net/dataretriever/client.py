@@ -25,7 +25,7 @@ class QueryResponseBlock:
     Represents url, source along with other information
     """
 
-    def __init__(self, map0, url, time=None):
+    def __init__(self, map0, url, time=None, meta=None):
         """
         Parameters
         ----------
@@ -38,15 +38,24 @@ class QueryResponseBlock:
         self.physobs = map0.get('physobs', "Data not Available")
         self.instrument = map0.get('instrument', "Data not Available")
         self.url = url
-        self.time = TimeRange(map0.get('Time_start'),
-                              map0.get('Time_end')) if time is None else time
-        self.wave = map0.get('wavelength', np.NaN)
+        if meta is None:
+            self.time = TimeRange(map0.get('Time_start'),
+                                  map0.get('Time_end')) if time is None else time
+            self.wave = map0.get('wavelength', np.NaN)
+        else:
+            self.StartTime = meta.get('StartTime', None)
+            self.EndTime = meta.get('EndTime', None)
+            self.Wavelength = meta.get('Wavelength', None)
+            self.SatelliteNumber = meta.get('SatelliteNumber', None)
+            self.Level = meta.get('Level', None)
+            self.Resolution = meta.get('Resolution', None)
+            self.Detector = meta.get('Detector', None)
 
 
-def iter_urls(amap, url_list, time):
+def iter_urls(amap, url_list, time, meta):
     """Helper Function"""
-    for aurl, t in zip(url_list, time):
-        tmp = QueryResponseBlock(amap, aurl, t)
+    for aurl, t, m in zip(url_list, time, meta):
+        tmp = QueryResponseBlock(amap, aurl, t, m)
         yield tmp
 
 
@@ -86,10 +95,12 @@ class QueryResponse(BaseQueryResponse):
             yield block
 
     @classmethod
-    def create(cls, amap, lst, time=None, client=None):
+    def create(cls, amap, lst, time=None, meta=None, client=None):
         if time is None:
             time = [None] * len(lst)
-        return cls(list(iter_urls(amap, lst, time)), client=client)
+        if meta is None:
+            meta = [None] * len(lst)
+        return cls(list(iter_urls(amap, lst, time, meta)), client=client)
 
     def time_range(self):
         """
@@ -273,6 +284,14 @@ class GenericClient(BaseClient):
         """
         return NotImplemented
 
+    def _get_metadata_for_url(self, urls):
+        """
+        This method allows client to get metadata information stored in each URL.
+
+        It should return a `dict` per URL.
+        """
+        return NotImplemented
+
     def search(self, *args, **kwargs):
         """
         Query this client for a list of results.
@@ -290,8 +309,11 @@ class GenericClient(BaseClient):
             self.map_.get('TimeRange'), **kwergs)
         if urls:
             times = self._get_time_for_url(urls)
+            urlmeta = self._get_time_for_url(urls)
             if times and times is not NotImplemented:
                 return QueryResponse.create(self.map_, urls, times, client=self)
+            if urlmeta and urlmeta is not NotImplemented:
+                return QueryResponse.create(self.map_, urls, meta=urlmeta, client=self)
         return QueryResponse.create(self.map_, urls, client=self)
 
     def fetch(self, qres, path=None, overwrite=False,
