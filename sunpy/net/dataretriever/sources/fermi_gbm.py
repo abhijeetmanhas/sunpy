@@ -151,7 +151,7 @@ def _check_detector(detector, **kwargs):
     detector_numbers = [str(i) for i in range(12)]
     detector_list = ['n' + i for i in detector_numbers]
     if detector.lower() in detector_list:
-        return detector
+        return detector.lower()
     elif detector in detector_numbers:
         return 'n' + detector
     else:
