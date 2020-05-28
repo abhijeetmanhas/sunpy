@@ -43,13 +43,11 @@ class QueryResponseBlock:
                                   map0.get('Time_end')) if time is None else time
             self.wave = map0.get('wavelength', np.NaN)
         else:
-            self.StartTime = meta.get('StartTime', None)
-            self.EndTime = meta.get('EndTime', None)
-            self.Wavelength = meta.get('Wavelength', None)
-            self.SatelliteNumber = meta.get('SatelliteNumber', None)
-            self.Level = meta.get('Level', None)
-            self.Resolution = meta.get('Resolution', None)
-            self.Detector = meta.get('Detector', None)
+            meta['Source'] = self.source
+            meta['Provider'] = self.provider
+            meta['Physobs'] = self.physobs
+            meta['Instrument'] = self.instrument
+            self.meta = meta
 
 
 def iter_urls(amap, url_list, time, meta):
@@ -121,17 +119,24 @@ class QueryResponse(BaseQueryResponse):
         return s
 
     def build_table(self):
-        columns = OrderedDict((('Start Time', []), ('End Time', []),
-                               ('Source', []), ('Instrument', []),
-                               ('Wavelength', [])))
-        for qrblock in self:
-            columns['Start Time'].append(
-                (qrblock.time.start).strftime(TIME_FORMAT))
-            columns['End Time'].append(
-                (qrblock.time.end).strftime(TIME_FORMAT))
-            columns['Source'].append(qrblock.source)
-            columns['Instrument'].append(qrblock.instrument)
-            columns['Wavelength'].append(str(u.Quantity(qrblock.wave)))
+        if len(self._data) > 0 and self._data[0].meta is not None:
+            meta0 = self._data[0].meta
+            columns = OrderedDict(((col, [])) for col in meta0.keys())
+            for qrblock in self:
+                for colname in columns.keys():
+                    columns[colname].append(qrblock.meta[colname])
+        else:
+            columns = OrderedDict((('Start Time', []), ('End Time', []),
+                                   ('Source', []), ('Instrument', []),
+                                   ('Wavelength', [])))
+            for qrblock in self:
+                columns['Start Time'].append(
+                    (qrblock.time.start).strftime(TIME_FORMAT))
+                columns['End Time'].append(
+                    (qrblock.time.end).strftime(TIME_FORMAT))
+                columns['Source'].append(qrblock.source)
+                columns['Instrument'].append(qrblock.instrument)
+                columns['Wavelength'].append(str(u.Quantity(qrblock.wave)))
 
         return astropy.table.Table(columns)
 
