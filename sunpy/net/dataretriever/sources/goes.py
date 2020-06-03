@@ -4,8 +4,6 @@
 
 import os
 
-from parse import parse
-
 from datetime import datetime
 from itertools import compress
 from urllib.parse import urlsplit
@@ -41,10 +39,10 @@ class XRSClient(GenericClient):
     Results from 1 Provider:
     <BLANKLINE>
     2 Results from the XRSClient:
-         Start Time           End Time      Source Instrument Wavelength
-    ------------------- ------------------- ------ ---------- ----------
-    2016-01-01 00:00:00 2016-01-01 23:59:59   nasa       goes        nan
-    2016-01-02 00:00:00 2016-01-02 23:59:59   nasa       goes        nan
+    SatelliteNumber      Start Time     Source Provider  Physobs   Instrument
+    --------------- ------------------- ------ -------- ---------- ----------
+                 15 2016-01-01 00:00:00   nasa     sdac irradiance       goes
+                 15 2016-01-02 00:00:00   nasa     sdac irradiance       goes
     <BLANKLINE>
     <BLANKLINE>
 
@@ -91,20 +89,6 @@ class XRSClient(GenericClient):
                 )
             )
 
-    def _get_metadata_for_url(self, urls):
-        meta = list()
-        pattern = ('https://umbra.nascom.nasa.gov/goes/fits/{year:4d}/'
-                   'go{satellitenumber:02d}{}{month:2d}{day:2d}.fits')
-        meta = list()
-        for url in urls:
-            udict = parse(pattern, url).named
-            urltime = parse_time(str(udict['year'])+'/'+str(udict['month'])+'/'+str(udict['day']))
-            metadict = {}
-            metadict['StartTime'] = urltime
-            metadict['SatelliteNumber'] = udict['satellitenumber']
-            meta.append(metadict)
-        return meta
-
     def _get_url_for_timerange(self, timerange, **kwargs):
         """
         Returns a URL to the GOES data for the specified date.
@@ -129,7 +113,9 @@ class XRSClient(GenericClient):
 
         goes_pattern = f"https://umbra.nascom.nasa.gov/goes/fits/{goes_file}"
         satellitenumber = kwargs.get("satellitenumber", self._get_goes_sat_num(timerange.start))
-        goes_files = Scraper(goes_pattern, satellitenumber=satellitenumber)
+        pattern = ('https://umbra.nascom.nasa.gov/goes/fits/{4d}/'
+                   'go{SatelliteNumber:02d}{}{4d}.fits')
+        goes_files = Scraper(goes_pattern, extractor=pattern, satellitenumber=satellitenumber)
 
         return goes_files.filelist(timerange)
 
@@ -149,9 +135,9 @@ class XRSClient(GenericClient):
         """
         tr_before = TimeRange(timerange.start, parse_time("1999/01/14"))
         tr_after = TimeRange(parse_time("1999/01/15"), timerange.end)
-        urls_before = self._get_url_for_timerange(tr_before, **kwargs)
-        urls_after = self._get_url_for_timerange(tr_after, **kwargs)
-        return urls_before + urls_after
+        urls_before, meta_before = self._get_url_for_timerange(tr_before, **kwargs)
+        urls_after, meta_after = self._get_url_for_timerange(tr_after, **kwargs)
+        return urls_before + urls_after, meta_before + meta_after
 
     def _makeimap(self):
         """

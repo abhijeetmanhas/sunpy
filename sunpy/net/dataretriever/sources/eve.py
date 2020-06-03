@@ -5,10 +5,8 @@
 import astropy.units as u
 from astropy.time import TimeDelta
 
-from parse import parse
-
 from sunpy.net.dataretriever import GenericClient
-from sunpy.time import parse_time, TimeRange
+from sunpy.time import TimeRange
 from sunpy.util.scraper import Scraper
 
 __all__ = ['EVEClient']
@@ -35,10 +33,10 @@ class EVEClient(GenericClient):
     Results from 1 Provider:
     <BLANKLINE>
     2 Results from the EVEClient:
-         Start Time           End Time      Source Instrument Wavelength
-    ------------------- ------------------- ------ ---------- ----------
-    2016-01-01 00:00:00 2016-01-02 00:00:00    SDO        eve        nan
-    2016-01-02 00:00:00 2016-01-03 00:00:00    SDO        eve        nan
+    Level      Start Time     Source Provider  Physobs   Instrument
+    ----- ------------------- ------ -------- ---------- ----------
+      0CS 2016-01-01 00:00:00    SDO     LASP irradiance        eve
+      0CS 2016-01-02 00:00:00    SDO     LASP irradiance        eve
     <BLANKLINE>
     <BLANKLINE>
 
@@ -46,7 +44,7 @@ class EVEClient(GenericClient):
 
     def _get_url_for_timerange(self, timerange, **kwargs):
         """
-        Return list of URLS corresponding to value of input timerange.
+        Return list of URLS and metadata corresponding to value of input timerange.
 
         Parameters
         ----------
@@ -55,8 +53,8 @@ class EVEClient(GenericClient):
 
         Returns
         -------
-        urls : list
-            list of URLs corresponding to the requested time range
+        urls, urlmeta : `tuple`
+            A tuple of list of URLs and their metadata for requested time range.
 
         """
         # If start of time range is before 00:00, converted to such, so
@@ -64,21 +62,10 @@ class EVEClient(GenericClient):
         # This is done because the archive contains daily files.
         if timerange.start.strftime('%M-%S') != '00-00':
             timerange = TimeRange(timerange.start.strftime('%Y-%m-%d'), timerange.end)
-        eve = Scraper(BASEURL)
-        return eve.filelist(timerange)
-
-    def _get_metadata_for_url(self, urls):
         pattern = ('http://lasp.colorado.edu/eve/data_access/evewebdata/quicklook/L0CS/SpWx/'
-                   '{}/{year:4d}{month:2d}{day:2d}_EVE_L{Level:3w}_DIODES_1m.txt')
-        meta = list()
-        for url in urls:
-            udict = parse(pattern, url).named
-            urltime = parse_time(str(udict['year'])+'/'+str(udict['month'])+'/'+str(udict['day']))
-            metadict = {}
-            metadict['StartTime'] = urltime
-            metadict['Level'] = udict['Level']
-            meta.append(metadict)
-        return meta
+                   '{}/{:8d}_EVE_L{Level:3w}_DIODES_1m.txt')
+        eve = Scraper(BASEURL, extractor=pattern)
+        return eve.filelist(timerange)
 
     def _makeimap(self):
         """

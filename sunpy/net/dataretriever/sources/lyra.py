@@ -2,10 +2,7 @@
 # This module was developed under funding provided by
 # Google Summer of Code 2014
 
-from parse import parse
-
 from sunpy.net.dataretriever.client import GenericClient
-from sunpy.time import parse_time
 from sunpy.util.scraper import Scraper
 
 __all__ = ['LYRAClient']
@@ -27,10 +24,10 @@ class LYRAClient(GenericClient):
     Results from 1 Provider:
     <BLANKLINE>
     2 Results from the LYRAClient:
-         Start Time           End Time      Source Instrument Wavelength
-    ------------------- ------------------- ------ ---------- ----------
-    2016-01-01 00:00:00 2016-01-02 00:00:00 Proba2       lyra        nan
-    2016-01-01 00:00:00 2016-01-02 00:00:00 Proba2       lyra        nan
+    Level      Start Time     Source Provider  Physobs   Instrument
+    ----- ------------------- ------ -------- ---------- ----------
+        2 2016-01-01 00:00:00 Proba2      esa irradiance       lyra
+        2 2016-01-02 00:00:00 Proba2      esa irradiance       lyra
     <BLANKLINE>
     <BLANKLINE>
 
@@ -50,25 +47,13 @@ class LYRAClient(GenericClient):
         `list`
             The URL(s) for the corresponding timerange.
         """
+        pattern = ('http://proba2.oma.be/lyra/data/bsd/{4d}/{2d}/{2d}'
+                   '/lyra_{}-000000_lev{Level:d}_std.fits')
         lyra_pattern = ('http://proba2.oma.be/lyra/data/bsd/%Y/%m/%d/'
                         'lyra_%Y%m%d-000000_lev{level}_std.fits')
-        lyra_files = Scraper(lyra_pattern, level=kwargs.get('level', 2))
+        lyra_files = Scraper(lyra_pattern, extractor=pattern, level=kwargs.get('level', 2))
         urls = lyra_files.filelist(timerange)
-
         return urls
-
-    def _get_metadata_for_url(self, urls):
-        pattern = ('http://proba2.oma.be/lyra/data/bsd/'
-                   '{year:4d}/{month:2d}/{day:2d}/lyra_{}-000000_lev{Level:d}_std.fits')
-        meta = list()
-        for url in urls:
-            udict = parse(pattern, url).named
-            urltime = parse_time(str(udict['year'])+'/'+str(udict['month'])+'/'+str(udict['day']))
-            metadict = {}
-            metadict['StartTime'] = urltime
-            metadict['Level'] = udict['Level']
-            meta.append(metadict)
-        return meta
 
     def _makeimap(self):
         """

@@ -118,7 +118,7 @@ class QueryResponse(BaseQueryResponse):
         return s
 
     def build_table(self):
-        if len(self._data) > 0 and self._data[0].meta is not None:
+        if len(self._data) > 0 and hasattr(self._data[0], 'meta') and self._data[0].meta:
             meta0 = self._data[0].meta
             columns = OrderedDict(((col, [])) for col in meta0.keys())
             for qrblock in self:
@@ -288,14 +288,6 @@ class GenericClient(BaseClient):
         """
         return NotImplemented
 
-    def _get_metadata_for_url(self, urls):
-        """
-        This method allows client to get metadata information stored in each URL.
-
-        It should return a `dict` per URL.
-        """
-        return NotImplemented
-
     def search(self, *args, **kwargs):
         """
         Query this client for a list of results.
@@ -309,14 +301,13 @@ class GenericClient(BaseClient):
 
         kwergs = copy.copy(self.map_)
         kwergs.update(kwargs)
-        urls = self._get_url_for_timerange(
+        urls, urlmeta = self._get_url_for_timerange(
             self.map_.get('TimeRange'), **kwergs)
         if urls:
             times = self._get_time_for_url(urls)
-            urlmeta = self._get_metadata_for_url(urls)
             if times and times is not NotImplemented:
                 return QueryResponse.create(self.map_, urls, times, client=self)
-            if urlmeta and urlmeta is not NotImplemented:
+            if urlmeta is not None:
                 return QueryResponse.create(self.map_, urls, meta=urlmeta, client=self)
         return QueryResponse.create(self.map_, urls, client=self)
 
