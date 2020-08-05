@@ -6,7 +6,7 @@ Extending Fido with New Sources of Data
 
 The `~sunpy.net.fido_factory.UnifiedDownloaderFactory` (``Fido``) object is extensible with new clients, which can interface with web services and download new data or metadata.
 There are two ways of defining a new client, depending on the complexity of your web service.
-A "simple" client inherits from `sunpy.net.dataretriver.GenericClient` which provides helper methods for downloading from a list of URLs.
+A "simple" client inherits from `~sunpy.net.dataretriver.GenericClient` which provides helper methods for downloading from a list of URLs.
 If your web service provides a list of HTTP or FTP urls that can easily be obtained from a search, this is probably the route to go.
 If your web service requires you to do complex parsing of the search, or needs to construct specific objects to interface with the web service, or you need control over the download implementation (i.e. does not just return a list of URLs) then you probably want to write a "full" client.
 
@@ -75,14 +75,14 @@ Writing a full client
 
 A new Fido client contains three major components:
 
-* A subclass of `sunpy.net.base_client.BaseClient` which implements the interface defined on that `~abc.ABC`, namely ``search``, ``fetch``, and ``_is_datasource_for``.
+* A subclass of `~sunpy.net.base_client.BaseClient` which implements the interface defined on that `~abc.ABC`, namely ``search``, ``fetch``, and ``_is_datasource_for``.
 * Zero or more new `~sunpy.net.attr.Attr` classes to specify search parameters unique to your data source.
-* An instance of `sunpy.net.attr.AttrWalker` which can be used to walk the tree of `~sunpy.net.attr.Attr` instances and convert them into a form useful to your client's search method.
+* An instance of `~sunpy.net.attr.AttrWalker` which can be used to walk the tree of `~sunpy.net.attr.Attr` instances and convert them into a form useful to your client's search method.
 
 Processing Search Attrs
 -----------------------
 
-As described in `sunpy.net.attr` the attr system allows the construction of complex queries by the user.
+As described in `~sunpy.net.attr` the attr system allows the construction of complex queries by the user.
 It then converts them to `disjuntive normal form <https://en.wikipedia.org/wiki/Disjunctive_normal_form>`__ an **OR** of **ANDS**.
 This means that as a client author, when you get passed a query (which contains an OR statement), the outer most `~sunpy.net.attr.Attr` is `~sunpy.net.attr.AttrOr` and each sub-tree of the `~sunpy.net.attr.AttrOr` will be `~sunpy.net.attr.AttrAnd` (or a single other attr class).
 For example you could get any of the following queries (using ``&`` for AND and ``|`` for OR):
@@ -106,7 +106,7 @@ Given the potential complexity of these combined attrs, converting them into oth
 This parsing and conversion of the query tree is deliberately not done using methods or attributes of the attrs themselves.
 The attrs should be independent of any client in their implementation, so they can be shared between the different ``Fido`` clients.
 
-A class is provided to facilitate this conversion, `sunpy.net.attr.AttrWalker`.
+A class is provided to facilitate this conversion, `~sunpy.net.attr.AttrWalker`.
 The `~sunpy.net.attr.AttrWalker` class consists of three main components:
 
 * **Creators**: The `~sunpy.net.attr.AttrWalker.create` method is one of two generic functions for which a different function is called for each Attr type.
@@ -129,7 +129,7 @@ Let's imagine we have a web service which you can do a HTTP GET request to ``htt
 This GET request takes three query parameters ``startTime``, ``endTime`` and ``level``, so a request might look something like: ``https://sfsi.sunpy.org/search?startTime=2020-01-02T00:00:00&endTime=2020-01-02T00:00:00&level=1``.
 Which would search for level one data between 2020-01-01 and 2020-01-02.
 
-As `sunpy.net.attrs` has `~sunpy.net.attrs.Time` and `~sunpy.net.attrs.Level` we don't need to define any of our own attrs for this client.
+As `~sunpy.net.attrs` has `~sunpy.net.attrs.Time` and `~sunpy.net.attrs.Level` we don't need to define any of our own attrs for this client.
 We do however want to write our own walker to convert them to the form out client's ``search()`` method wants to send them to the server.
 
 The first step is to setup the walker and define a creator method which will return either a dict (for a single query) or a list of dicts for multiple queries.
