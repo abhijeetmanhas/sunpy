@@ -15,7 +15,7 @@ Writing a new "simple" client
 
 A new "simple" client contains these components:
 
-* A class method :func:`~sunpy.net.dataretriever.GenericClient.register_values` which register the "attrs" that are desired to be supported by the client.
+* A class method :meth:`~sunpy.net.dataretriever.GenericClient.register_values` which register the "attrs" that are desired to be supported by the client.
   It returns a dictionary where keys are the supported attrs and values are lists of tuples.
   Each ``tuple`` contains the Attr value and its description.
 * A class attribute ``baseurl``.
@@ -24,16 +24,16 @@ A new "simple" client contains these components:
   This string should be declared in a way that it extracts the metadata from urls correctly, using :func:`~sunpy.extern.parse.parse`.
 
 Sometimes the "Attr" values may not exist identically in the retrieved urls.
-Say, for example, the Wavelength Attr can be passed as an `~astropy.units.Quantity` to the :func:`search` but the url may have a different representation for it in its string.
+Say, for example, the Wavelength Attr can be passed as an `~astropy.units.Quantity` to the :meth:`~sunpy.net.dataretriever.GenericClient.search` but the url may have a different representation for it in its string.
 For such cases, these methods need to be worked out:
 
-* :func:`~sunpy.net.dataretriever.GenericClient.pre_search_hook` which will convert the passed attrs to their representation in the url.
-* :func:`~sunpy.net.dataretriever.GenericClient.post_search_hook` which converts the retrieved metadata from url to the form in which they are desired to be represented in the response table.
+* :meth:`~sunpy.net.dataretriever.GenericClient.pre_search_hook` which will convert the passed attrs to their representation in the url.
+* :meth:`~sunpy.net.dataretriever.GenericClient.post_search_hook` which converts the retrieved metadata from url to the form in which they are desired to be represented in the response table.
 
 It may also be possible that the URL contains the "Attrs" other than time in the directory itself.
-Since scraper doesn't support generating directories that have non-time variables, the :func:`search` needs to be overwritten.
-Based on the "Attrs" passed to it, they can be looped to generate the possible patterns for directory and then passed to the scraper
-:func:`super().search` can be called per loop.
+Since scraper doesn't support generating directories that have non-time variables, the :meth:`~sunpy.net.dataretriever.GenericClient.search` needs to be overwritten.
+Based on the "Attrs" passed to it, they can be looped to generate the possible patterns for directory and then passed to the scraper.
+:meth:`super().search` can be called per loop.
 
 Examples
 ^^^^^^^^
@@ -48,7 +48,7 @@ Suppose any file of a data archive can be described by this ``https://some-domai
   Note that ``\`` is used to escape the special character ``.``.
 
 * ``pattern`` becomes ``'{}/{year:4d}/{month:2d}{day:2d}/satname_{SatelliteNumber:2d}_{Level:1d}_{:6d}{hour:2d}{minute:2d}{second:2d}_{:2d}.fits'``.
-  Note the sole purpose of ``pattern`` is to extract the information from matched url, using :func:`parse`.
+  Note the sole purpose of ``pattern`` is to extract the information from matched url, using :func:`~sunpy.extern.parse.parse`.
   So the desired key names for returned dictionary should be written in the pattern within ``{}``, and they should match with the ``attr.__name__``.
 
 *  ``register_values()`` can be written as:
