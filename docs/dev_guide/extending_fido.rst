@@ -69,7 +69,6 @@ Suppose any file of a data archive can be described by this ``https://some-domai
 
             return adict
 
-
 Writing a full client
 =====================
 
@@ -82,7 +81,7 @@ A new Fido client contains three major components:
 Processing Search Attrs
 -----------------------
 
-As described in `~sunpy.net.attr` the attr system allows the construction of complex queries by the user.
+As described in `~sunpy.net.attr <https://docs.sunpy.org/en/stable/code_ref/net.html#module-sunpy.net.attrs>`__ the attr system allows the construction of complex queries by the user.
 It then converts them to `disjuntive normal form <https://en.wikipedia.org/wiki/Disjunctive_normal_form>`__ an **OR** of **ANDS**.
 This means that as a client author, when you get passed a query (which contains an OR statement), the outer most `~sunpy.net.attr.Attr` is `~sunpy.net.attr.AttrOr` and each sub-tree of the `~sunpy.net.attr.AttrOr` will be `~sunpy.net.attr.AttrAnd` (or a single other attr class).
 For example you could get any of the following queries (using ``&`` for AND and ``|`` for OR):
