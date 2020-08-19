@@ -41,7 +41,7 @@ Examples
 Suppose any file of a data archive can be described by this ``https://some-domain.com/%Y/%m/%d/satname_{SatellitNumber}_{Level}_%y%m%d%H%M%S_{any-2-digit-number}.fits``:
 
 * ``baseurl`` becomes ``r'https://some-domain.com/%Y/%m/%d/satname_(\d){2}_(\d){1}_(\d){12}_(\d){2}\.fits'``.
-  
+
   Note all variables in the filename are converted to regex that will match any possible value for it.
   A character enclosed within ``()`` followed by a number enclosed within ``{}`` is used to match the specified number of occurences of that special sequence.
   For example, ``%y%m%d%H%M%S`` is a six digit variable (2 digits for each) and thus represented by ``r'(\d){12}'``.
