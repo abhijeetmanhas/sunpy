@@ -160,7 +160,7 @@ Adding "Attrs" to Registry
 Registering of "attrs" ensures discoverability of search attributes supported by the corresponding SunPy Client.
 For adding them to the Registry, we need to define a ``classmethod`` :meth:`~sunpy.net.base_client.BaseClient.register_values` that returns a dictionary of registered values.
 This dictionary should have `~sunpy.net.attr.Attr` classes as keys and a list of tuples corresponding to that key representing the possible values key "attr" can take.
-Each tuple comprises of two elements. 
+Each tuple comprises of two elements.
 The first one is value and the second element contains a brief description of that value.
 An example of writing ``register_values()`` for `~sunpy.net.dataretriever.GenericClient` is provided above.
 Please note that it can be defined in a similar way for full clients too.
