@@ -253,6 +253,3 @@ def rstjinja(app, docname, source):
 def setup(app):
     # Generate the stability page
     app.connect("source-read", rstjinja)
-
-    # The theme conf provides a fix for circle ci redirections
-    fix_circleci(app)

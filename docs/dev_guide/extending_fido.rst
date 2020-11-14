@@ -6,7 +6,7 @@ Extending Fido with New Sources of Data
 
 The `~sunpy.net.fido_factory.UnifiedDownloaderFactory` (``Fido``) object is extensible with new clients, which can interface with web services and download new data or metadata.
 There are two ways of defining a new client, depending on the complexity of your web service.
-A "simple" client inherits from `~sunpy.net.dataretriver.GenericClient` which provides helper methods for downloading from a list of URLs.
+A "simple" client inherits from `~sunpy.net.dataretriever.client.GenericClient` which provides helper methods for downloading from a list of URLs.
 If your web service provides a list of HTTP or FTP urls that can easily be obtained from a search, this is probably the route to go.
 If your web service requires you to do complex parsing of the search, or needs to construct specific objects to interface with the web service, or you need control over the download implementation (i.e. does not just return a list of URLs) then you probably want to write a "full" client.
 
@@ -15,7 +15,7 @@ Writing a new "simple" client
 
 A new "simple" client contains these components:
 
-* A class method :meth:`~sunpy.net.dataretriever.GenericClient.register_values` which register the "attrs" that are desired to be supported by the client.
+* A class method :meth:`~sunpy.net.dataretriever.client.GenericClient.register_values` which register the "attrs" that are desired to be supported by the client.
   It returns a dictionary where keys are the supported attrs and values are lists of tuples.
   Each ``tuple`` contains the Attr value and its description.
 * A class attribute ``baseurl``.
@@ -24,19 +24,19 @@ A new "simple" client contains these components:
   This string should be declared in a way that it extracts the metadata from urls correctly, using :func:`~sunpy.extern.parse.parse`.
 
 Sometimes the "Attr" values may not exist identically in the retrieved urls.
-Say, for example, the Wavelength Attr can be passed as an `~astropy.units.Quantity` to the :meth:`~sunpy.net.dataretriever.GenericClient.search` but the url may have a different representation for it in its string.
+Say, for example, the Wavelength Attr can be passed as an `~astropy.units.Quantity` to the :meth:`~sunpy.net.dataretriever.client.GenericClient.search` but the url may have a different representation for it in its string.
 For such cases, these methods need to be worked out:
 
-* :meth:`~sunpy.net.dataretriever.GenericClient.pre_search_hook` which will convert the passed attrs to their representation in the url.
-* :meth:`~sunpy.net.dataretriever.GenericClient.post_search_hook` which converts the retrieved metadata from url to the form in which they are desired to be represented in the response table.
+* :meth:`~sunpy.net.dataretriever.client.GenericClient.pre_search_hook` which will convert the passed attrs to their representation in the url.
+* :meth:`~sunpy.net.dataretriever.client.GenericClient.post_search_hook` which converts the retrieved metadata from url to the form in which they are desired to be represented in the response table.
 
 It may also be possible that the URL contains the "Attrs" other than time in the directory itself.
-Since scraper doesn't support generating directories that have non-time variables, the :meth:`~sunpy.net.dataretriever.GenericClient.search` needs to be overwritten.
+Since scraper doesn't support generating directories that have non-time variables, the :meth:`~sunpy.net.dataretriever.client.GenericClient.search` needs to be overwritten.
 Based on the "Attrs" passed to it, they can be looped to generate the possible patterns for directory and then passed to the scraper.
 :meth:`super().search` can be called per loop.
 
 Examples
-^^^^^^^^
+--------
 
 Suppose any file of a data archive can be described by this ``https://some-domain.com/%Y/%m/%d/satname_{SatellitNumber}_{Level}_%y%m%d%H%M%S_{any-2-digit-number}.fits``:
 
@@ -52,7 +52,8 @@ Suppose any file of a data archive can be described by this ``https://some-domai
   So the desired key names for returned dictionary should be written in the pattern within ``{}``, and they should match with the ``attr.__name__``.
 
 *  ``register_values()`` can be written as:
-    ..code-block:: python
+
+    .. code-block:: python
 
         @classmethod
         def register_values(cls):
@@ -81,7 +82,7 @@ A new Fido client contains three major components:
 Processing Search Attrs
 -----------------------
 
-As described in `~sunpy.net.attr <https://docs.sunpy.org/en/stable/code_ref/net.html#module-sunpy.net.attrs>`__ the attr system allows the construction of complex queries by the user.
+As described in `~sunpy.net.attr` the attr system allows the construction of complex queries by the user.
 It then converts them to `disjuntive normal form <https://en.wikipedia.org/wiki/Disjunctive_normal_form>`__ an **OR** of **ANDS**.
 This means that as a client author, when you get passed a query (which contains an OR statement), the outer most `~sunpy.net.attr.Attr` is `~sunpy.net.attr.AttrOr` and each sub-tree of the `~sunpy.net.attr.AttrOr` will be `~sunpy.net.attr.AttrAnd` (or a single other attr class).
 For example you could get any of the following queries (using ``&`` for AND and ``|`` for OR):
@@ -133,7 +134,7 @@ We do however want to write our own walker to convert them to the form out clien
 
 The first step is to setup the walker and define a creator method which will return either a dict (for a single query) or a list of dicts for multiple queries.
 
-..code-block:: python
+.. code-block:: python
 
     import sunpy.net.atrrs as a
     from sunpy.net.attr import AttrWalker, AttrAnd, AttrOr, DataAttr
@@ -162,13 +163,13 @@ For adding them to the Registry, we need to define a ``classmethod`` :meth:`~sun
 This dictionary should have `~sunpy.net.attr.Attr` classes as keys and a list of tuples corresponding to that key representing the possible values key "attr" can take.
 Each tuple comprises of two elements.
 The first one is value and the second element contains a brief description of that value.
-An example of writing ``register_values()`` for `~sunpy.net.dataretriever.GenericClient` is provided above.
+An example of writing ``register_values()`` for `~sunpy.net.dataretriever.client.GenericClient` is provided above.
 Please note that it can be defined in a similar way for full clients too.
 
 An Example of ``register_values()``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-..code-block:: python
+.. code-block:: python
 
     @classmethod
     def register_values(cls):
@@ -178,7 +179,9 @@ An Example of ``register_values()``
         attrs.Instrument: [("LASCO", "Large Angle and Spectrometric Coronagraph")],
         attrs.Source: [('SOHO', 'Solar and Heliospheric Observatory')],
         attrs.Provider: [('SDAC', 'Solar Data Analysis Center')],
-        attrs.Detector: [('C1', 'Coronograph 1'), ('C2', 'Coronograph 2'), ('C3', 'Coronograph 3')]
+        attrs.Detector: [('C1', 'Coronograph 1'),
+                         ('C2', 'Coronograph 2'),
+                         ('C3', 'Coronograph 3')]
         }
 
         return adict
