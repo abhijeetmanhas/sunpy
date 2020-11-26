@@ -4,10 +4,10 @@
 Extending Fido with New Sources of Data
 ***************************************
 
-The `~sunpy.net.fido_factory.UnifiedDownloaderFactory` (``Fido``) object is extensible with new clients, which can interface with web services and download new data or metadata.
+The `~sunpy.net.fido_factory.UnifiedDownloaderFactory` (``Fido``) object is extensible with new clients, which can interface with web services and download data.
 There are two ways of defining a new client, depending on the complexity of your web service.
 A "simple" client inherits from `~sunpy.net.dataretriever.client.GenericClient` which provides helper methods for downloading from a list of URLs.
-If your web service provides a list of HTTP or FTP urls that can easily be obtained from a search, this is probably the route to go.
+If your web service provides a list of HTTP or FTP URLs that can easily be obtained from a search, this is probably the route to go.
 If your web service requires you to do complex parsing of the search, or needs to construct specific objects to interface with the web service, or you need control over the download implementation (i.e. does not just return a list of URLs) then you probably want to write a "full" client.
 
 Writing a new "simple" client
@@ -15,41 +15,41 @@ Writing a new "simple" client
 
 A new "simple" client contains these components:
 
-* A class method :meth:`~sunpy.net.dataretriever.client.GenericClient.register_values` which register the "attrs" that are desired to be supported by the client.
+* A class method :meth:`~sunpy.net.dataretriever.client.GenericClient.register_values` which registers the "attrs" that are supported by the client.
   It returns a dictionary where keys are the supported attrs and values are lists of tuples.
   Each ``tuple`` contains the Attr value and its description.
 * A class attribute ``baseurl``.
-  It's a regex string which can be used to match all urls supported by the client.
+  ``baseurl`` is a regex string which is used to match all URLs supported by the client.
 * A class attribute ``pattern``.
-  This string should be declared in a way that it extracts the metadata from urls correctly, using :func:`~sunpy.extern.parse.parse`.
+  ``pattern`` is a string declared in a way that it extracts the metadata from URLs correctly, using :func:`~sunpy.extern.parse.parse`.
 
-Sometimes the "Attr" values may not exist identically in the retrieved urls.
-Say, for example, the Wavelength Attr can be passed as an `~astropy.units.Quantity` to the :meth:`~sunpy.net.dataretriever.client.GenericClient.search` but the url may have a different representation for it in its string.
-For such cases, these methods need to be worked out:
+Sometimes the "Attr" values may not exist identically in the required URLs.
+Say, for example, the Wavelength Attr can be passed as an `~astropy.units.Quantity` to the :meth:`~sunpy.net.dataretriever.client.GenericClient.search` but the URL may have a different representation for it in its string.
+For such cases, these methods need to be worked out. This is done within the two following functions within the client: 
 
-* :meth:`~sunpy.net.dataretriever.client.GenericClient.pre_search_hook` which will convert the passed attrs to their representation in the url.
-* :meth:`~sunpy.net.dataretriever.client.GenericClient.post_search_hook` which converts the retrieved metadata from url to the form in which they are desired to be represented in the response table.
+* :meth:`~sunpy.net.dataretriever.client.GenericClient.pre_search_hook` which will convert the passed attrs to their representation in the URL.
+* :meth:`~sunpy.net.dataretriever.client.GenericClient.post_search_hook` which converts the retrieved metadata from URL to the form in which they are desired to be represented in the response table.
 
 It may also be possible that the URL contains the "Attrs" other than time in the directory itself.
-Since scraper doesn't support generating directories that have non-time variables, the :meth:`~sunpy.net.dataretriever.client.GenericClient.search` needs to be overwritten.
+Since ~sunpy.util.scraper.Scraper` doesn't support generating directories that have non-time variables, the :meth:`~sunpy.net.dataretriever.client.GenericClient.search` needs to be customised.
 Based on the "Attrs" passed to it, they can be looped to generate the possible patterns for directory and then passed to the scraper.
 :meth:`super().search` can be called per loop.
 
 Examples
 --------
 
-Suppose any file of a data archive can be described by this ``https://some-domain.com/%Y/%m/%d/satname_{SatellitNumber}_{Level}_%y%m%d%H%M%S_{any-2-digit-number}.fits``:
+Suppose any file of a data archive can be described by this URL ``https://some-domain.com/%Y/%m/%d/satname_{SatellitNumber}_{Level}_%y%m%d%H%M%S_{any-2-digit-number}.fits``:
 
 * ``baseurl`` becomes ``r'https://some-domain.com/%Y/%m/%d/satname_(\d){2}_(\d){1}_(\d){12}_(\d){2}\.fits'``.
 
   Note all variables in the filename are converted to regex that will match any possible value for it.
   A character enclosed within ``()`` followed by a number enclosed within ``{}`` is used to match the specified number of occurences of that special sequence.
-  For example, ``%y%m%d%H%M%S`` is a six digit variable (2 digits for each) and thus represented by ``r'(\d){12}'``.
+  For example, ``%y%m%d%H%M%S`` is a six digit variable (with 2 digits for each) and thus represented by ``r'(\d){12}'``.
   Note that ``\`` is used to escape the special character ``.``.
 
 * ``pattern`` becomes ``'{}/{year:4d}/{month:2d}{day:2d}/satname_{SatelliteNumber:2d}_{Level:1d}_{:6d}{hour:2d}{minute:2d}{second:2d}_{:2d}.fits'``.
-  Note the sole purpose of ``pattern`` is to extract the information from matched url, using :func:`~sunpy.extern.parse.parse`.
-  So the desired key names for returned dictionary should be written in the pattern within ``{}``, and they should match with the ``attr.__name__``.
+  Note the sole purpose of ``pattern`` is to extract the information from matched URL, using :func:`~sunpy.extern.parse.parse`. 
+  So the desired key names for returned dictionary should be written in the ``pattern`` within ``{}``, and they should match with the ``attr.__name__``.
 
 *  ``register_values()`` can be written as:
 
@@ -75,7 +75,7 @@ Writing a full client
 
 A new Fido client contains three major components:
 
-* A subclass of `~sunpy.net.base_client.BaseClient` which implements the interface defined on that `~abc.ABC`, namely ``search``, ``fetch``, and ``_is_datasource_for``.
+* A subclass of `~sunpy.net.base_client.BaseClient` which implements ``search``, ``fetch``, and ``_is_datasource_for``.
 * Zero or more new `~sunpy.net.attr.Attr` classes to specify search parameters unique to your data source.
 * An instance of `~sunpy.net.attr.AttrWalker` which can be used to walk the tree of `~sunpy.net.attr.Attr` instances and convert them into a form useful to your client's search method.
 
@@ -117,7 +117,7 @@ The `~sunpy.net.attr.AttrWalker` class consists of three main components:
   The only difference between it and `~sunpy.net.attr.AttrWalker.create` is its intended use.
   Appliers are generally used to modify an object returned by a creator with the values or information contained in other Attrs.
 
-* **Converters**: Adding a converter to the walker, adds the function to the both the creator and the applier.
+* **Converters**: Adding a converter to the walker adds the function to both the creator and the applier.
   For the VSO client this is used to convert each supported attr into a `~sunpy.net.attr.ValueAttr` which is then later processed by the appliers and creators.
   This pattern can be useful if you would otherwise have to repeat a lot of logic in each of the applier functions for each type of Attr you support.
 
